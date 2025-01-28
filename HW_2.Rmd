@@ -1,0 +1,233 @@
+---
+title: "HW 2"
+author: "Maggie Ma"
+date: "2025-01-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      message = FALSE)
+library(ggplot2)
+library(tidyverse)
+```
+
+#### Maggie Ma, mm227339, Github Link: <https://github.com/maggiema9966/Homework-2>
+
+# Problem 1: Beauty, or not, in the classroom
+
+### Part A
+
+```{r}
+evaluations <- read.csv('profs.csv')
+evaluations_ggplot <- ggplot(evaluations)
+
+evaluations_ggplot + geom_histogram(aes(x=eval), binwidth = .5) +
+  labs(
+    title = "Course Evaluation Scores",
+    x = "Evaluation Score (1-5)",
+    y = "Frequency"
+  )
+```
+
+##### Histogram of the score distribution of how students rated their courses on a scale from 1-5. The scores seem to skew left, with no scores lower than 2.
+
+### Part B
+
+```{r}
+evaluations_ggplot + geom_boxplot(aes(y = eval)) + 
+  facet_wrap(~native) + 
+  labs(
+    title = "Course Evaluation Scores By English Familiarity",
+    x = "Native English Speaker",
+    y = "Evaluation Score (1-5)"
+  ) +
+  scale_x_continuous(labels = NULL)
+```
+
+##### Boxplots of the score distribution of how students rated their courses on a scale from 1-5 based on whether the professor is a native English speaker. The median of the native English-speaking professors was slightly higher than the non-native English-speaking professors.
+
+### Part C
+
+```{r}
+evaluations_ggplot + geom_histogram(aes(x = eval)) + 
+  facet_wrap(~gender) + 
+  labs(
+    title = "Course Evaluation Scores By Gender",
+    x = "Evaluation Score (1-5)",
+    y = "Frequency"
+  ) +
+  scale_x_continuous(labels = NULL)
+```
+
+##### Histograms of the score distribution of how students rated their courses on a scale from 1-5 based on a professor's gender. Both distributions are skewed left, but there seems to be a larger sample of male professors than female professors.
+
+### Part D
+
+```{r}
+evaluations_ggplot + geom_point(aes(x=beauty, y=eval)) +
+  labs(
+    title = "Course Evaluation Scores as a Function of Professors' Beauty Ratings",
+    x = "Evaluation Score (1-5)",
+    y = "Beauty Ratings"
+  )
+```
+
+##### Scatterplot of the score distribution of how students rated their courses on a scale from 1-5 in relation to the professor's beauty ratings. There is a weak correlation between the two variables.
+
+# Problem 2: Bike Sharing
+
+### Part A
+
+```{r}
+bike <- read.csv('bikeshare.csv')
+
+bike <- bike |>
+  group_by(hr) |>
+  mutate(avgbyhour = mean(total))
+  
+bike |>
+  ggplot() + geom_line(aes(x = hr, y = avgbyhour)) +
+  labs(
+    title = "Average Bike Rentals Throughout the Day",
+    x = "Hour",
+    y = "Average Number of Bike Rentals"
+  )
+```
+
+##### Line graph of the average number of bike rentals by each hour. There are 2 peaks in the number of bike rentals during hours 8 and 17.
+
+### Part B
+
+```{r}
+bike |>
+  group_by(hr, workingday) |>
+  summarize(avgworkday = mean(total)) |>
+  ggplot() + geom_line(aes(x = hr, y = avgworkday)) +
+  facet_wrap(~workingday) +
+  labs(
+    title = "Average Bike Rentals Throughout the Day by Type of Day",
+    x = "Hour",
+    y = "Average Number of Bike Rentals"
+  )
+```
+
+##### Line graph of the average number of bike rentals by each hour based on whether the day is a work day (1) or not (0). The graphs seem to be almost inverses of each other, where it is usually busy during rush hours in the early morning and late afternoon during work days but around noon on weekends/holdiays.
+
+### Part C
+
+```{r}
+bike |>
+  filter(hr == 9) |>
+  group_by(weathersit, workingday) |>
+  summarize(avg = mean(total)) |>
+  ggplot() + geom_col(aes(x = weathersit, y = avg)) +
+  facet_wrap(~workingday) +
+  labs(
+    title = "Average Bike Rentals in Each Weather Condition by Type of Day",
+    x = "Weather Condition",
+    y = "Average Number of Bike Rentals"
+  )
+```
+
+##### Bar graph of the average number of bike rentals by each weather condition (1: clear/partly cloudy; 2: misty; 3: light rain; 4: heavy/severe precipitation) based on whether the day is a work day (1) or not (0). There is a significantly less amount of bike rentals when there is precipitation on both work and non-work days.
+
+# Problem 3: Capital Metro UT Ridership
+
+### Part 1
+
+```{r}
+metro <- read.csv('capmetro_UT.csv')
+
+metro = mutate(metro,
+  day_of_week = factor(day_of_week,
+    levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")),
+  month = factor(month,
+    levels=c("Sep", "Oct","Nov")))
+  
+metro |>
+  group_by(hour_of_day, day_of_week, month) |>
+  summarize(avgMonth = mean(boarding)) |>
+  ggplot() + geom_line(aes(x = hour_of_day, y = avgMonth, col = month)) +
+  facet_wrap(~day_of_week) +
+  labs(
+    title = "Average Boardings by Hour, Day of Week, and Month",
+    x = "Hour",
+    y = "Average Number of Boardings"
+  )
+```
+
+##### Line graph of the average number of boardings each hour based on each day of the week and the month. The number of boardings are much higher in all months during the weekdays, likely due to the need for transportation to work and school, while there are very few boarding numbers during the weekend. September Mondays have a lower peak, possibly due to the Labor Day holiday, where people do not have work or school. Similarly, November Wednesdays, Thursdays, and Fridays have a lower peak, possibly due to people taking work off for Thanksgiving.
+
+### Part 2
+
+```{r}
+metro |>
+  ggplot() + geom_point(aes(x = temperature, y = boarding, col = weekend)) +
+  facet_wrap(~hour_of_day) +
+  labs(
+    title = "Number of Boardings in Different Temperatures by Type of Day and Hour of Day",
+    x = "Temperature",
+    y = "Number of Boardings"
+  )
+```
+
+##### Scatterplot of the number of boardings each temperature range based on the type of day (weekday or weekend) and hour of day. The number of boardings are much higher in all hours of the day during the weekdays, and the number of boardings increases as the hours increase and begin decreasing after hour 17. However, when holding the hour of day and weekend status constant, there does not seem to be a significant difference in the number of boardings, which means temperature does not have a huge impact on the number of boardings.
+
+\newpage
+# Problem 4: Wrangling the Billboard Top 100
+
+### Part A
+
+```{r}
+billboard <- read.csv('billboard.csv')
+
+billboard |>
+  group_by(performer, song) |>
+  summarize(count = n()) |>
+  arrange(desc(count)) |>
+  head(10)
+```
+
+##### Table of the top 10 most popular songs (based on how many weeks the song was on the Billboard Top 100). The table displays the song title, artist, and the number of weeks the song was on the Billboard Top 100.
+
+### Part B
+
+```{r}
+billboard |>
+  filter(year != 1958, year != 2021) |>
+  distinct(year, song, performer) |>
+  group_by(year) |>
+  summarize(count = n()) |>
+  ggplot() + geom_line(aes(x = year, y = count)) + 
+  labs(
+    title = "Number of Unique Songs Each Year",
+    x = "Year",
+    y = "Number of Unique Songs"
+  )
+```
+
+##### Line graph of the number of unique songs in each year. After \~1965, the number of unique songs plummeted, with very few unique songs by the end of the 2000s. However, it begins to rise again after \~2005 and reached a peak of a similar number of unique songs by 2020.
+
+### Part C
+
+```{r}
+billboard |>
+  group_by(performer, song) |>
+  summarize(numWeeks = n()) |>
+  filter(numWeeks >= 10) |>
+  summarize(numSongs = table(performer)) |>
+  filter(numSongs >= 30) |>
+  ggplot() + geom_col(aes(x = performer, y = numSongs)) +
+  coord_flip() +
+  labs(
+    title = "Artists With At Least 30 Ten-Week Hit Songs",
+    x = "Artist",
+    y = "Number of Songs"
+  )
+```
+
+##### Bar graph of the various artists that had at least 30 songs that were a ten-week hit. Elton John stands out with the highest number of ten-week hits.
